@@ -1,5 +1,4 @@
 const { ethers } = require('ethers');
-
 require('dotenv').config();
 
 const TradeABI = require('../../artifacts/contracts/TradeRegistry.sol/TradeRegistry.json').abi;
@@ -8,7 +7,7 @@ const ContractAddress = process.env.CONTRACT_ADDRESS;
 
 const createOrder = async (req, res) => {
     try {
-        const { buyerAddress, price, quantity } = req.body;
+        const { buyerAddress, crop, price, quantity } = req.body;
 
         const provider = new ethers.JsonRpcProvider();
 
@@ -18,11 +17,11 @@ const createOrder = async (req, res) => {
 
         const tx = await tradeContract.createOrder(
             buyerAddress,
+            crop,
             ethers.parseEther(price.toString()),
             quantity
         );
 
-        console.log("Transaction Hash:", tx.hash);
         await tx.wait();
 
         res.status(200).json({
@@ -37,6 +36,3 @@ const createOrder = async (req, res) => {
 };
 
 module.exports = createOrder;
-
-
-

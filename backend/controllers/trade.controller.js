@@ -15,13 +15,13 @@ const verifyTrade = async (req, res) => {
         }
 
         const chainTrade = await fetchTradeFromBlockchain(trade.txHash);
-
         const verified = trade.price === chainTrade.price && trade.quantity === chainTrade.quantity;
 
         res.json({
             success: true,
             verified,
             database: {
+                crop: trade.crop,
                 price: trade.price,
                 quantity: trade.quantity,
             },

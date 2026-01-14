@@ -36,7 +36,9 @@ const fetchTradeFromBlockchain = async (txHash) => {
     if (!tradeEvent) throw new Error("OrderFinalized event not found");
 
     return {
+        farmer: tradeEvent.args.farmer,
         buyer: tradeEvent.args.buyer,
+        crop: tradeEvent.args.crop,
         price: (ethers.formatUnits(tradeEvent.args.price, 18)).toString(),
         quantity: Number(tradeEvent.args.quantity),
     };

@@ -4,6 +4,7 @@ const OrderSchema = new mongoose.Schema({
     blockchainId: { type: Number, unique: true },
     farmer: String,
     buyer: String,
+    crop: String,
     price: String,
     quantity: Number,
     txHash: String,

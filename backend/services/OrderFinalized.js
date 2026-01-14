@@ -11,7 +11,7 @@ const tradeContract = new ethers.Contract(contractAddress, TradeABI, provider);
 
 function finalizedOrder() {
     tradeContract.on("OrderFinalized",
-        async (id, farmer, buyer, price, qty, time, event) => {
+        async (id, farmer, buyer, crop, price, qty, time, event) => {
             const blockchainId = Number(id);
             console.log(`New Order Detected: ID ${id}`);
 
@@ -23,6 +23,7 @@ function finalizedOrder() {
                             blockchainId,
                             farmer,
                             buyer,
+                            crop,
                             price: ethers.formatEther(price),
                             quantity: Number(qty),
                             txHash: event.log.transactionHash,

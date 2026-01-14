@@ -6,6 +6,7 @@ contract TradeRegistry {
         uint256 id;
         address farmer;
         address buyer;
+        string crop;
         uint256 price;
         uint256 quantity;
         uint256 timestamp;
@@ -19,6 +20,7 @@ contract TradeRegistry {
         uint256 indexed orderId,
         address indexed farmer,
         address indexed buyer,
+        string crop,
         uint256 price,
         uint256 quantity,
         uint256 timestamp
@@ -26,6 +28,7 @@ contract TradeRegistry {
 
     function createOrder(
         address _buyer,
+        string memory _crop,
         uint256 _price,
         uint256 _quantity
     ) public {
@@ -35,6 +38,7 @@ contract TradeRegistry {
             orderCount,
             msg.sender,
             _buyer,
+            _crop,
             _price,
             _quantity,
             block.timestamp
@@ -44,6 +48,7 @@ contract TradeRegistry {
             orderCount,
             msg.sender,
             _buyer,
+            _crop,
             _price,
             _quantity,
             block.timestamp
