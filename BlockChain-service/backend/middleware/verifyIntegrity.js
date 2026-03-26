@@ -1,6 +1,6 @@
 const { ethers } = require('ethers');
-const BlockTrade = require('../models/BlockTrade');
-const Trade = require('../models/Order');
+const BlockTrade = require('../models/BlockTrade.model');
+const Trade = require('../models/Order.model');
 
 const { fetchTradeFromBlockchain } = require('../services/blockchain.service');
 const { generateDataFingerprint } = require('../utilities/fingerprintGenerator');

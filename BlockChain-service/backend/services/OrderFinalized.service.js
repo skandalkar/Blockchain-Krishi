@@ -4,6 +4,7 @@ require('dotenv').config();
 const Order = require('../models/Order.model');
 const BlockTrade = require('../models/BlockTrade.model');
 const TradeABI = require('../../artifacts/contracts/TradeRegistry.sol/TradeRegistry.json').abi;
+
 const { generateDataFingerprint } = require('../utilities/fingerprintGenerator');
 
 const provider = new ethers.JsonRpcProvider(process.env.RPC_PROVIDER_URL);
@@ -11,20 +12,32 @@ const contractAddress = process.env.CONTRACT_ADDRESS;
 const tradeContract = new ethers.Contract(contractAddress, TradeABI, provider);
 
 function finalizedOrder() {
+
     tradeContract.on("OrderFinalized",
-        async (id, farmer, buyer, orderId, crop, price, qty, totalCost, time, event) => {
+        async (id, farmer, buyer, orderId, crop, price, qty, totalCost, time, status, event) => {
+
             const blockchainId = Number(id);
             console.log(`New Order Detected: ID ${id}`);
-            
+
             try {
                 const farmerAddress = typeof farmer === 'object' ? farmer.hash : farmer;
                 const buyerAddress = typeof buyer === 'object' ? buyer.hash : buyer;
                 const orderIdString = typeof orderId === 'object' ? orderId.hash : orderId;
 
-                const priceInEther = ethers.formatEther(price); 
+                const priceInEther = ethers.formatEther(price);
                 const quantity = Number(qty);
                 const totalCostInEther = parseFloat(priceInEther) * quantity;
+
+                const txHash = event?.log?.transactionHash ?? event?.transactionHash;
+                const blockNumber = event?.log?.blockNumber ?? event?.blockNumber;
                 
+                if (!txHash || blockNumber == null) {
+                    throw new TypeError(
+                        `OrderFinalized listener received no event log metadata (txHash=${txHash}, blockNumber=${blockNumber}). ` +
+                        `This usually means the listener callback signature doesn't match the Solidity event.`
+                    );
+                }
+
                 // Save to Order collection DB 
                 await Order.updateOne(
                     { blockchainId },
@@ -38,7 +51,7 @@ function finalizedOrder() {
                             price: ethers.formatEther(price),
                             quantity: Number(qty),
                             totalCost: totalCostInEther,
-                            txHash: event.log.transactionHash,
+                            txHash,
                             timestamp: new Date(Number(time) * 1000),
                         },
                     },
@@ -46,11 +59,18 @@ function finalizedOrder() {
                 );
 
                 // Fetch block details to get blockHash
-                const block = await provider.getBlock(event.log.blockNumber);
+                const block = await provider.getBlock(blockNumber);
 
                 // Generate data fingerprint for tampering detection
-                const dataFingerprint = generateDataFingerprint(priceInEther, quantity, farmerAddress, buyerAddress);
-                
+                // const dataFingerprint = generateDataFingerprint(priceInEther, quantity, farmerAddress, buyerAddress);
+                const dataFingerprint = generateDataFingerprint(
+                    priceInEther,
+                    quantity,
+                    farmerAddress,
+                    buyerAddress,
+                    status ?? "PENDING"
+                );
+
                 // Save to BlockTrade collection with blockchain metadata
                 await BlockTrade.updateOne(
                     { tradeId: orderIdString },
@@ -62,11 +82,11 @@ function finalizedOrder() {
                             quantity,
                             price: priceInEther,
                             tradeId: orderIdString,
-                            blockNumber: event.log.blockNumber,
+                            blockNumber,
                             blockHash: block.hash,
-                            transactionHash: event.log.transactionHash,
+                            transactionHash: txHash,
                             dataFingerprint,
-                            orderStatus: 'PENDING'
+                            orderStatus: status ?? 'PENDING'
                         },
                     },
                     { upsert: true }

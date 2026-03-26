@@ -2,9 +2,10 @@ const express = require('express');
 require('dotenv').config();
 
 const connectDB = require('./config/db');
-const finalizedOrder = require('./services/OrderFinalized');
-const tradeRoutes = require('./routes/RouteTrade')
-const paymentRoutes = require('./routes/paymentRoutes');
+const finalizedOrder = require('./services/OrderFinalized.service');
+const tradeRoutes = require('./routes/RouteTrade.route')
+const paymentRoutes = require('./routes/paymentRoutes.route');
+require("./listeners/blockchainListener");
 
 const app = express();
 app.use(express.json());
