@@ -1,4 +1,4 @@
-const { ethers } = require("ethers");
+const { ethers, formatUnits } = require("ethers");
 require("dotenv").config();
 
 const abi = require('../../artifacts/contracts/TradeRegistry.sol/TradeRegistry.json').abi;
@@ -6,9 +6,9 @@ const abi = require('../../artifacts/contracts/TradeRegistry.sol/TradeRegistry.j
 const provider = new ethers.JsonRpcProvider(process.env.RPC_PROVIDER_URL);
 const contract = new ethers.Contract(process.env.CONTRACT_ADDRESS, abi, provider);
 
-const fetchTradeFromBlockchain = async (txHash) => {
-    
-    const receipt = await provider.getTransactionReceipt(txHash);
+const fetchTradeFromBlockchain = async (transactionHash) => {
+        
+    const receipt = await provider.getTransactionReceipt(transactionHash);
 
     if (!receipt) throw new Error("Transaction not found");
 
@@ -32,7 +32,8 @@ const fetchTradeFromBlockchain = async (txHash) => {
         farmer: tradeEvent.args.farmer,
         buyer: tradeEvent.args.buyer,
         crop: tradeEvent.args.crop,
-        price: (ethers.formatUnits(tradeEvent.args.price, 18)).toString(),
+        // price: (ethers.formatUnits(tradeEvent.args.price, 18)).toString(),
+        price: Number (formatUnits(tradeEvent.args.price,18)),
         quantity: Number(tradeEvent.args.quantity),
     };
 };
